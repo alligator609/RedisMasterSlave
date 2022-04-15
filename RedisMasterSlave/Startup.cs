@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using RedisMasterSlave.BackgroundTasks;
 using RedisMasterSlave.Services;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +31,11 @@ namespace RedisMasterSlave
         {
 
             services.AddControllers();
-            services.AddSingleton<ICacheService,InMemoryCacheService>();
+            // services.AddSingleton<ICacheService,InMemoryCacheService>();
+            services.AddSingleton<IConnectionMultiplexer>(x => ConnectionMultiplexer.Connect(Configuration["Redis"]));
+            services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddHostedService<RedisSubscriber>(); //background task
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RedisMasterSlave", Version = "v1" });
